@@ -9,6 +9,8 @@
 
 	<link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css">
 	<link rel="stylesheet" type="text/css" href="/css/styles.css">
+
+	<script type="text/javascript" src="/js/jquery-2.1.3.min.js"></script>
 </head>
 
 <body>
@@ -16,10 +18,102 @@
 		<h1>Dictionary</h1>
 
 		<h2>Search</h2>
-		<input id="search-input" />
-		<button>Search</button>
+		<form>
+			<div class="form-group">
+				<label for="search-input">Word</label>
+				<input type="text" id="search-input" placeholder="Search word" class="form-control" />
+				
+				<label for="speech-select">Word</label>
+				<select class="form-control" name="partOfSpeech" id="speech-select">
+					<option selected="selected" value="">(All)</option>
+					<option value="noun">noun</option>
+					<option value="adjective">adjective</option>
+					<option value="verb">verb</option>
+					<option value="adverb">adverb</option>
+					<option value="interjection">interjection</option>
+					<option value="pronoun">pronoun</option>
+					<option value="preposition">preposition</option>
+					<option value="abbreviation">abbreviation</option>
+					<option value="affix">affix</option>
+					<option value="article">article</option>
+					<option value="auxiliary-verb">auxiliary-verb</option>
+					<option value="conjunction">conjunction</option>
+					<option value="definite-article">definite-article</option>
+					<option value="family-name">family-name</option>
+					<option value="given-name">given-name</option>
+					<option value="idiom">idiom</option>
+					<option value="imperative">imperative</option>
+					<option value="noun-plural">noun-plural</option>
+					<option value="noun-posessive">noun-posessive</option>
+					<option value="past-participle">past-participle</option>
+					<option value="phrasal-prefix">phrasal-prefix</option>
+					<option value="proper-noun">proper-noun</option>
+					<option value="proper-noun-plural">proper-noun-plural</option>
+					<option value="proper-noun-posessive">proper-noun-posessive</option>
+					<option value="suffix">suffix</option>
+					<option value="verb-intransitive">verb-intransitive</option>
+					<option value="verb-transitive">verb-transitive</option>
+				</select>
+			</div>
+		
+			<button type="submit" id="search-button" class="btn btn-default">Search</button>
+			<img src="/ajax-loader.gif" id="spinner" class="hidden" />
+		</form>
 
-		<ul></ul>
+		<div id="results">
+			<ul id="list-results"></ul>
+			<div class="folded"><code><pre id="result"></pre></code></div>
+		</div>
 	</div>
+
+	<script type="text/javascript">
+
+$(function(){
+	var fnPopulateResults = function(aResults){
+		var sLis = '';
+		aResults.forEach(function(oResult){
+			var sLi = '<li class="result-line">';
+			sLi += '<div>';
+			sLi += '<span class="part-of-speech">'+oResult.partOfSpeech+'</span>';
+			sLi += '<span class="definition">'+oResult.text+'</span>';
+			sLi += '</div>';
+			sLis += sLi;
+		});
+		$('ul#list-results').html(sLis);
+	};
+	var fnSearchWord = function(){
+		var sWord = $('#search-input').val();
+		if(!sWord || !sWord.length){
+			return console.error('No word to search');
+		}
+		var partOfSpeech = $('select[name="partOfSpeech"]').val();
+		$('#spinner').removeClass('hidden');
+		$.getJSON('/word.json', {word: sWord, partOfSpeech: partOfSpeech}, function(data){
+			var sJson = JSON.stringify(data, null, "\t");
+			$('#result').html(sJson);
+			fnPopulateResults(data);
+			$('#spinner').addClass('hidden');
+		});
+	};
+
+	$('#search-input').keyup(function(event){
+		if(event.which == 13){
+			//fnSearchWord();
+		}
+	});
+	$('#search-button').click(function(event){
+		event.preventDefault();
+		fnSearchWord();
+		return false;
+	});
+});
+
+$(function(){
+	$('.folded').click(function(event){
+		$(event.target).closest('.folded').toggleClass('unfold');
+	});
+});
+
+	</script>
 </body>
 </html>

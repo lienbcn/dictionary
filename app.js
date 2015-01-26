@@ -1,8 +1,43 @@
 /*** EXTERNAL LIBRARIES ***/
 var express = require('express');
+var fs = require('fs');
 
+var wordnik = require('./modules/wordnik.js');
 var data = require('./modules/data.js');
 var config = require('./config.js');
+
+//Constants:
+var WORDNIK_URL = 'http://api.wordnik.com:80/v4';
+
+//Init scripts:
+//Fetch first N words for autocomplete:
+(function(){
+	global.aCommonWords = [];
+	var numWords = 10000;
+	var buffer = new Buffer(1024);
+	var sFile = '';
+	var fd = fs.openSync(config.commonWordsFile, 'r');
+	var bytesRead;
+	while(true){
+		bytesRead = fs.readSync(fd, buffer, 0, 1024, null);
+		sFile += buffer.slice(0, bytesRead).toString();
+		if(bytesRead < 1024){ //end of file
+			break;
+		}
+		if(sFile.split(/\r\rn|\r|\n/).length >= numWords){
+			break;
+		}
+	}
+	var aLines = sFile.split(/\r\rn|\r|\n/);
+	aLines.pop(-1); //remove last item because it can be cutted
+	aLines.forEach(function(sLine){
+		//Each line has a word, followed by a space or tab and then the number of times it appears on a very large text
+		var sWord = sLine.match(/^[a-zA-Z]+/)[0];
+		global.aCommonWords.push(sWord);
+	});
+})();
+
+
 
 var app = express();
 
@@ -12,6 +47,24 @@ app.use(express.static(__dirname + '/public/'));
 /*** WEBSITE PAGES AND STATES ***/
 app.get('/', function (req, res) {
 	res.redirect('/index.html');
+});
+
+app.get('/commonWords.json', function(req, res, next){
+	if(!global.aCommonWords){
+		return next(new Error('Common words array has not been defined'));
+	}
+	res.send(JSON.stringify(global.aCommonWords));
+});
+
+//Returns arary of 
+app.get('/word.json', function(req, res, next){
+	if(!req.query.word || req.query.word === ''){
+		return res.send(JSON.stringify({error: 'Empty parameter: word'}));
+	}
+	wordnik.definitions(req.query.word.trim().toLowerCase(), req.query.partOfSpeech, function(error, response, body){
+		if(error) return next(error);
+		return res.send(body);
+	});
 });
 
 
@@ -36,7 +89,9 @@ app.use(function(err, req, res, next) {
 	if(err.status !== 404) {
 		return next();
 	}
+	res.status(404);
 	res.send('404 - Page not found');
 });
 
 app.listen(config.port);
+console.log('App listening at port '+config.port);
