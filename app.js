@@ -61,9 +61,28 @@ app.get('/word.json', function(req, res, next){
 	if(!req.query.word || req.query.word === ''){
 		return res.send(JSON.stringify({error: 'Empty parameter: word'}));
 	}
-	wordnik.definitions(req.query.word.trim().toLowerCase(), req.query.partOfSpeech, function(error, response, body){
+	var sWord = req.query.word.trim().toLowerCase();
+	wordnik.definitions(sWord, req.query.partOfSpeech, function(error, response, body){
 		if(error) return next(error);
 		return res.send(body);
+	});
+
+	//Track all the searches that have been done:
+	data.get('search_log', function(err, aSearchLog){
+		if(err){
+			return console.error(err);
+		}
+		aSearchLog = aSearchLog || [];
+		aSearchLog.push({
+			word: sWord,
+			partOfSpeech: req.query.partOfSpeech,
+			date: new Date().getTime()
+		});
+		data.set('search_log', aSearchLog, function(err){
+			if(err){
+				console.error(err);
+			}
+		});
 	});
 });
 

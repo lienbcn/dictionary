@@ -15,74 +15,99 @@
 
 <body>
 	<div id="wrapper">
-		<h1>Dictionary</h1>
+	<h1>Dictionary</h1>
 
-		<h2>Search</h2>
-		<form>
-			<div class="form-group">
-				<label for="search-input">Word</label>
+	<h2>Search</h2>
+		<div class="form-group">
+			<label for="search-input">Word</label>
+			<div class="input-group">
+				<span class="input-group-btn">
+					<button id="search-button" class="btn btn-default">Search</button>
+				</span>
 				<input type="text" id="search-input" placeholder="Search word" class="form-control" />
+				<span class="input-group-btn">
+					<button id="previous-btn" class="btn btn-default">Prev</button>
+				</span>
+				<span class="input-group-btn">
+					<button id="next-btn" class="btn btn-default">Next</button>
+				</span>
 				
-				<label for="speech-select">Word</label>
-				<select class="form-control" name="partOfSpeech" id="speech-select">
-					<option selected="selected" value="">(All)</option>
-					<option value="noun">noun</option>
-					<option value="adjective">adjective</option>
-					<option value="verb">verb</option>
-					<option value="adverb">adverb</option>
-					<option value="interjection">interjection</option>
-					<option value="pronoun">pronoun</option>
-					<option value="preposition">preposition</option>
-					<option value="abbreviation">abbreviation</option>
-					<option value="affix">affix</option>
-					<option value="article">article</option>
-					<option value="auxiliary-verb">auxiliary-verb</option>
-					<option value="conjunction">conjunction</option>
-					<option value="definite-article">definite-article</option>
-					<option value="family-name">family-name</option>
-					<option value="given-name">given-name</option>
-					<option value="idiom">idiom</option>
-					<option value="imperative">imperative</option>
-					<option value="noun-plural">noun-plural</option>
-					<option value="noun-posessive">noun-posessive</option>
-					<option value="past-participle">past-participle</option>
-					<option value="phrasal-prefix">phrasal-prefix</option>
-					<option value="proper-noun">proper-noun</option>
-					<option value="proper-noun-plural">proper-noun-plural</option>
-					<option value="proper-noun-posessive">proper-noun-posessive</option>
-					<option value="suffix">suffix</option>
-					<option value="verb-intransitive">verb-intransitive</option>
-					<option value="verb-transitive">verb-transitive</option>
-				</select>
 			</div>
+			
+			<label for="speech-select">Word</label>
+			<select class="form-control" name="partOfSpeech" id="speech-select">
+				<option selected="selected" value="">(All)</option>
+				<option value="noun">noun</option>
+				<option value="adjective">adjective</option>
+				<option value="verb">verb</option>
+				<option value="adverb">adverb</option>
+				<option value="interjection">interjection</option>
+				<option value="pronoun">pronoun</option>
+				<option value="preposition">preposition</option>
+				<option value="abbreviation">abbreviation</option>
+				<option value="affix">affix</option>
+				<option value="article">article</option>
+				<option value="auxiliary-verb">auxiliary-verb</option>
+				<option value="conjunction">conjunction</option>
+				<option value="definite-article">definite-article</option>
+				<option value="family-name">family-name</option>
+				<option value="given-name">given-name</option>
+				<option value="idiom">idiom</option>
+				<option value="imperative">imperative</option>
+				<option value="noun-plural">noun-plural</option>
+				<option value="noun-posessive">noun-posessive</option>
+				<option value="past-participle">past-participle</option>
+				<option value="phrasal-prefix">phrasal-prefix</option>
+				<option value="proper-noun">proper-noun</option>
+				<option value="proper-noun-plural">proper-noun-plural</option>
+				<option value="proper-noun-posessive">proper-noun-posessive</option>
+				<option value="suffix">suffix</option>
+				<option value="verb-intransitive">verb-intransitive</option>
+				<option value="verb-transitive">verb-transitive</option>
+			</select>
+		</div>
+	
 		
-			<button type="submit" id="search-button" class="btn btn-default">Search</button>
-			<img src="/ajax-loader.gif" id="spinner" class="hidden" />
-		</form>
+		<img src="/ajax-loader.gif" id="spinner" class="hidden" />
+
 
 		<div id="results">
+			<h4 id="word-title"></h4>
 			<ul id="list-results"></ul>
 			<div class="folded"><code><pre id="result"></pre></code></div>
 		</div>
 	</div>
 
 	<script type="text/javascript">
+//Init global variables:
+var oSearchHistory = {
+	aWords: [],
+	nPointer: -1 //pointer to last word searched
+};
+
 
 $(function(){
-	var fnPopulateResults = function(aResults){
+	var fnPopulateResults = function(aResults, sWord){
 		var sLis = '';
-		aResults.forEach(function(oResult){
+		aResults.forEach(function(oResult, nIndex){
 			var sLi = '<li class="result-line">';
-			sLi += '<div>';
+			sLi += '<div ';
+			if(nIndex % 2 === 1){
+				sLi += 'style="background-color: #eee;"';
+			}
+			sLi += '>';
 			sLi += '<span class="part-of-speech">'+oResult.partOfSpeech+'</span>';
 			sLi += '<span class="definition">'+oResult.text+'</span>';
 			sLi += '</div>';
 			sLis += sLi;
 		});
 		$('ul#list-results').html(sLis);
+		$('#word-title').html(sWord);
 	};
-	var fnSearchWord = function(){
+	var fnSearchWord = function(bKeepPointer, bDontPushHistory){
 		var sWord = $('#search-input').val();
+		sWord = sWord.trim();
+		$('#search-input').val(sWord);
 		if(!sWord || !sWord.length){
 			return console.error('No word to search');
 		}
@@ -91,14 +116,23 @@ $(function(){
 		$.getJSON('/word.json', {word: sWord, partOfSpeech: partOfSpeech}, function(data){
 			var sJson = JSON.stringify(data, null, "\t");
 			$('#result').html(sJson);
-			fnPopulateResults(data);
+			fnPopulateResults(data, sWord);
 			$('#spinner').addClass('hidden');
 		});
+
+		//Append word to local history:
+		if(!bDontPushHistory){
+			oSearchHistory.aWords.push(sWord);
+		}
+		if(!bKeepPointer){
+			oSearchHistory.nPointer = oSearchHistory.aWords.length - 1;	
+		}
 	};
+	window.fnSearchWord = fnSearchWord; //used in other places
 
 	$('#search-input').keyup(function(event){
 		if(event.which == 13){
-			//fnSearchWord();
+			fnSearchWord();
 		}
 	});
 	$('#search-button').click(function(event){
@@ -111,6 +145,34 @@ $(function(){
 $(function(){
 	$('.folded').click(function(event){
 		$(event.target).closest('.folded').toggleClass('unfold');
+	});
+});
+
+//Previous and next button handlers
+$(function(){
+	$('#previous-btn').click(function(event){
+		event.preventDefault();
+		oSearchHistory.nPointer --;
+		if(oSearchHistory.nPointer < 0){
+			oSearchHistory.nPointer = 0;
+			console.log('No more words back in history');
+			return false;
+		}
+		var sWordToSearch = oSearchHistory.aWords[oSearchHistory.nPointer];
+		$('#search-input').val(sWordToSearch);
+		fnSearchWord(true, true);
+	});
+	$('#next-btn').click(function(event){
+		event.preventDefault();
+		oSearchHistory.nPointer ++;
+		if(oSearchHistory.nPointer >= oSearchHistory.aWords.length){
+			oSearchHistory.nPointer = oSearchHistory.aWords.length - 1;
+			console.log('No more words forward in history');
+			return false;
+		}
+		var sWordToSearch = oSearchHistory.aWords[oSearchHistory.nPointer];
+		$('#search-input').val(sWordToSearch);
+		fnSearchWord(true, true);
 	});
 });
 
