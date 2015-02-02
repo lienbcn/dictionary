@@ -9,7 +9,7 @@ var oCache = {};
 
 //Create the data folder if it doesn't exist:
 if(!fs.existsSync(config.dataDir)){
-	mkdirSync(config.dataDir);
+	fs.mkdirSync(config.dataDir);
 }
 //Update cache from the data file. Use sync to make sure it finishes before trying to access to the data:
 if(fs.existsSync(config.dataFile)){ //create a new file with an empty object:
