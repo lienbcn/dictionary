@@ -34,7 +34,7 @@
 				
 			</div>
 			
-			<label for="speech-select">Word</label>
+			<label for="speech-select">Part of speech</label>
 			<select class="form-control" name="partOfSpeech" id="speech-select">
 				<option selected="selected" value="">(All)</option>
 				<option value="noun">noun</option>
@@ -122,7 +122,7 @@ $(function(){
 
 		//Append word to local history:
 		if(!bDontPushHistory){
-			oSearchHistory.aWords.push(sWord);
+			oSearchHistory.aWords.push({word: sWord, partOfSpeech: partOfSpeech});
 		}
 		if(!bKeepPointer){
 			oSearchHistory.nPointer = oSearchHistory.aWords.length - 1;	
@@ -158,8 +158,9 @@ $(function(){
 			console.log('No more words back in history');
 			return false;
 		}
-		var sWordToSearch = oSearchHistory.aWords[oSearchHistory.nPointer];
-		$('#search-input').val(sWordToSearch);
+		var oWordToSearch = oSearchHistory.aWords[oSearchHistory.nPointer];
+		$('#search-input').val(oWordToSearch.word);
+		$('#speech-select').val(oWordToSearch.partOfSpeech);
 		fnSearchWord(true, true);
 	});
 	$('#next-btn').click(function(event){
@@ -170,8 +171,9 @@ $(function(){
 			console.log('No more words forward in history');
 			return false;
 		}
-		var sWordToSearch = oSearchHistory.aWords[oSearchHistory.nPointer];
-		$('#search-input').val(sWordToSearch);
+		var oWordToSearch = oSearchHistory.aWords[oSearchHistory.nPointer];
+		$('#search-input').val(oWordToSearch.word);
+		$('#speech-select').val(oWordToSearch.partOfSpeech);
 		fnSearchWord(true, true);
 	});
 });

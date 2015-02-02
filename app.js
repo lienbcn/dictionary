@@ -10,10 +10,11 @@ var config = require('./config.js');
 var WORDNIK_URL = 'http://api.wordnik.com:80/v4';
 
 //Init scripts:
-//Fetch first N words for autocomplete:
+//Fetch first N words of frequency list:
 (function(){
 	global.aCommonWords = [];
-	var numWords = 10000;
+	var numWords = 60000;
+	console.log('Loading the first '+numWords+' common words ...');
 	var buffer = new Buffer(1024);
 	var sFile = '';
 	var fd = fs.openSync(config.commonWordsFile, 'r');
@@ -31,10 +32,11 @@ var WORDNIK_URL = 'http://api.wordnik.com:80/v4';
 	var aLines = sFile.split(/\r\rn|\r|\n/);
 	aLines.pop(-1); //remove last item because it can be cutted
 	aLines.forEach(function(sLine){
-		//Each line has a word, followed by a space or tab and then the number of times it appears on a very large text
+		//Each line has a word, followed by a space or tab and then the number of times it appears on a very long text
 		var sWord = sLine.match(/^[a-zA-Z]+/)[0];
 		global.aCommonWords.push(sWord);
 	});
+	console.log('The first '+global.aCommonWords.length+' common words have been loaded');
 })();
 
 
@@ -73,6 +75,9 @@ app.get('/word.json', function(req, res, next){
 			return console.error(err);
 		}
 		aSearchLog = aSearchLog || [];
+		//Find the frequency of this word:
+		var nFrequency = null;
+		debugger;
 		aSearchLog.push({
 			word: sWord,
 			partOfSpeech: req.query.partOfSpeech,
