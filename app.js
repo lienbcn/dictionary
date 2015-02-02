@@ -75,12 +75,10 @@ app.get('/word.json', function(req, res, next){
 			return console.error(err);
 		}
 		aSearchLog = aSearchLog || [];
-		//Find the frequency of this word:
-		var nFrequency = null;
-		debugger;
 		aSearchLog.push({
 			word: sWord,
 			partOfSpeech: req.query.partOfSpeech,
+			frequency: global.aCommonWords.indexOf(sWord), //-1 means not found (very strange word)
 			date: new Date().getTime()
 		});
 		data.set('search_log', aSearchLog, function(err){
