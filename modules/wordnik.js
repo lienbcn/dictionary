@@ -3,7 +3,7 @@ var request = require('request');
 var nLastAuthentication = null;
 
 var authenticate = function(cb){
-	request('http://api.wordnik.com:80/v4/account.json/authenticate/lienbcn?password=Thorium90mydbg&api_key=a2a73e7b926c924fad7001ca3111acd55af2ffabf50eb4ae5', cb);
+	request('http://api.wordnik.com:80/v4/account.json/authenticate/lienbcn?password=Thorium90&api_key=a2a73e7b926c924fad7001ca3111acd55af2ffabf50eb4ae5', cb);
 };
 
 var definitions = function(word, partOfSpeech, cb){

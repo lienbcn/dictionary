@@ -3,11 +3,10 @@ var express = require('express');
 var fs = require('fs');
 
 var wordnik = require('./modules/wordnik.js');
+var translate = require('./modules/translate.js');
 var data = require('./modules/data.js');
 var config = require('./config.js');
 
-//Constants:
-var WORDNIK_URL = 'http://api.wordnik.com:80/v4';
 
 //Init scripts:
 //Fetch first N words of frequency list:
@@ -38,7 +37,6 @@ var WORDNIK_URL = 'http://api.wordnik.com:80/v4';
 	});
 	console.log('The first '+global.aCommonWords.length+' common words have been loaded');
 })();
-
 
 
 var app = express();
@@ -86,6 +84,21 @@ app.get('/word.json', function(req, res, next){
 				console.error(err);
 			}
 		});
+	});
+});
+
+app.get('/translate.json', function(req, res, next){
+	if(!req.query.word || req.query.word === ''){
+		return res.send(JSON.stringify({error: 'Empty parameter: word'}));
+	}
+	var sWord = req.query.word.trim().toLowerCase();
+	translate.translateToSpanish(sWord, function(err, englishWord){
+		if(err) return next(err);
+		var oResponse = {
+			error: false,
+			data: englishWord
+		};
+		return res.send(JSON.stringify(oResponse));
 	});
 });
 
