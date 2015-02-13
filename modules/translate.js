@@ -14,11 +14,12 @@ var requestGoogleTranslate = function(englishWord, cb){
 				ie: 'UTF-8',
 				text: englishWord,
 				'edit-text': ''
-			}
+			},
+			encoding: 'binary' //should return in utf8 because in the html there's the property of charset in UTF-8 but it's not true and some charachters were not visible
 		},
 		function(err, httpResponse, body){
 			if(err) return cb(err);
-			if(httpResponse.statusCode !== 200) return cb(new Error('Status code: '+ttpResponse.statusCode+' ; body: '+body));
+			if(httpResponse.statusCode !== 200) return cb(new Error('Status code: '+httpResponse.statusCode+' ; body: '+body));
 			var sHtmlContent = body.match(/<body( |>).+<\/body>/); //Get the whole <body> tag
 			if(!sHtmlContent){
 				return cb(new Error('Response is not HTML, or it does not contain the <body> tag: '+body));
